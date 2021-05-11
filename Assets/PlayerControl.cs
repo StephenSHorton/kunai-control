@@ -8,13 +8,34 @@ public class PlayerControl : MonoBehaviour
     [SerializeField] float pitchSpeed = 2.0f;
     [SerializeField] float forwardSpeed = 2.0f;
 
+    AudioSource impact;
+    Rigidbody rbody;
+    ParticleSystem impactParticles;
+    bool frozen = false;
+
+    void Start()
+    {
+        impact = GetComponent<AudioSource>();
+        rbody = GetComponent<Rigidbody>();
+        impactParticles = GetComponent<ParticleSystem>();
+    }
     void Update()
     {
-        moveCamera();
-        moveForward();
+        if (!frozen){
+            moveForward();
+            control();
+        }
     }
 
-    private void moveCamera()
+    void OnCollisionEnter(Collision hit) {
+        frozen = true;
+        impact.Play();
+        rbody.freezeRotation = true;
+        rbody.isKinematic = true;
+        impactParticles.Play();
+    }
+
+    private void control()
     {
         // Get the mouse delta. This is not in the range -1...1
         float h = yawSpeed * Input.GetAxis("Mouse X");
@@ -22,7 +43,7 @@ public class PlayerControl : MonoBehaviour
         transform.Rotate(-v, h, 0);
     }
     private void moveForward()
-    {
+    {   
         transform.Translate(Vector3.forward * Time.deltaTime * forwardSpeed);
     }
 }
