@@ -4,18 +4,25 @@ using UnityEngine;
 
 public class PlayerControl : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] float yawSpeed = 2.0f;
+    [SerializeField] float pitchSpeed = 2.0f;
+    [SerializeField] float forwardSpeed = 2.0f;
 
-    // Update is called once per frame
     void Update()
     {
-        if (Input.GetButtonDown())
-        {
-            
-        }
+        moveCamera();
+        moveForward();
+    }
+
+    private void moveCamera()
+    {
+        // Get the mouse delta. This is not in the range -1...1
+        float h = yawSpeed * Input.GetAxis("Mouse X");
+        float v = pitchSpeed * Input.GetAxis("Mouse Y");
+        transform.Rotate(-v, h, 0);
+    }
+    private void moveForward()
+    {
+        transform.Translate(Vector3.forward * Time.deltaTime * forwardSpeed);
     }
 }
