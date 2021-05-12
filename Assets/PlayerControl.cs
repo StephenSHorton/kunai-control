@@ -11,7 +11,7 @@ public class PlayerControl : MonoBehaviour
     AudioSource impact;
     Rigidbody rbody;
     ParticleSystem impactParticles;
-    bool frozen = false;
+    bool landed = false;
 
     void Start()
     {
@@ -21,23 +21,26 @@ public class PlayerControl : MonoBehaviour
     }
     void Update()
     {
-        if (!frozen){
+        if (!landed) {
             moveForward();
             control();
         }
     }
-
-    void OnCollisionEnter(Collision hit) {
-        frozen = true;
-        impact.Play();
-        rbody.freezeRotation = true;
-        rbody.isKinematic = true;
-        impactParticles.Play();
+    void OnCollisionEnter(Collision other) {
+        if (!landed) {
+            if (other.gameObject.CompareTag("Goal")) {
+                StartCoroutine(delayedWinSound(1f, other.gameObject.GetComponent<AudioSource>()));
+                successfulImpact();
+                //TODO Signal public goal success
+                Debug.Log("END");
+            } else {
+                failedImpact();
+                //TODO Signal public goal failed
+            }
+        }
     }
-
     private void control()
     {
-        // Get the mouse delta. This is not in the range -1...1
         float h = yawSpeed * Input.GetAxis("Mouse X");
         float v = pitchSpeed * Input.GetAxis("Mouse Y");
         transform.Rotate(-v, h, 0);
@@ -45,5 +48,28 @@ public class PlayerControl : MonoBehaviour
     private void moveForward()
     {   
         transform.Translate(Vector3.forward * Time.deltaTime * forwardSpeed);
+    }
+    private void successfulImpact()
+    {
+        landed = true;
+        impact.Play();
+        rbody.freezeRotation = true;
+        rbody.isKinematic = true;
+        impactParticles.Play();
+        //TODO pan camera to hit object
+    }
+    private void failedImpact()
+    {
+        //TODO make look more failed-like (bounce off that crap)
+        landed = true;
+        impact.Play();
+        rbody.useGravity = true;
+        impactParticles.Play();
+        //TODO pan camera to hit object
+    }
+    IEnumerator delayedWinSound(float x, AudioSource audio)
+    {
+        yield return new WaitForSeconds(x);
+        audio.Play();
     }
 }
